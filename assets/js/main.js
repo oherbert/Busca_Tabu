@@ -1,4 +1,6 @@
 let fileList;
+let iteracaoTotal = 0;
+let arrRes = null;
 
 // Método para comparar 2 Arrays
 Array.prototype.equals = function (array) {
@@ -138,7 +140,12 @@ const buscaTabu = trajeto => {
                         //console.log(tabu);
                         tabuA.push(tabu);
                         percursoI.splice(swap1, 0, percursoI.splice(swap2, 1)[0]);
-                        if (tabuA.length > trajeto.percurso.length - 2) tabuA.shift();
+
+                        //Remove elementos da lista tabu
+                        if (tabuA.length > trajeto.percurso.length  * 4 ){
+                            const a = tabuA.shift();
+                            //console.log(a);
+                            }
                         newTabu = true;
                     }
                 }
@@ -147,29 +154,26 @@ const buscaTabu = trajeto => {
 
     }
 
-    console.log(percursoI);
+  //  console.log(percursoI);
 
     let passo = 0;
     for(let i=0; i< fileList.length; i++) {
         const next = percursoI[i];
         distanciaI += parseFloat(fileList[passo][next]);
         passo = next;
-        console.log(distanciaI);
-        console.log(fileList[passo][next]);
-        console.log('///////////');
     };
 
-    console.log(distanciaI);
-    console.log("********");
+
 
     if (trajeto.distancia === 0) {
         trajeto.distancia = parseFloat(distanciaI).toFixed(2);
         trajeto.percurso = percursoI;
+       // console.log(trajeto);
     }
 
     if (trajeto.distancia > distanciaI) {
         trajeto.distancia = parseFloat(distanciaI).toFixed(2);
-        console.log(trajeto.distancia);
+        //console.log(trajeto.distancia);
         trajeto.percurso = percursoI;
     }
 
@@ -181,30 +185,33 @@ const buscaTabu = trajeto => {
 const main = (() => {
     const btnLer = document.querySelector('.ler');
 
+
     // Adiciona o Listener na função submit do botão Ler
     btnLer.addEventListener('click', event => {
         event.preventDefault();
 
+        let trajeto = {
+            distancia: -Math.max(),
+            percurso: [],
+            listaTabu: []
+        };
+
         // Verifica se há um documento no input
         if (fileList !== undefined && fileList !== null) {
 
-            let trajeto = {
-                distancia: 0,
-                percurso: [],
-                listaTabu: []
-            };
-
-
-
 
             let iteracao = 1;
-            while (iteracao < 30) {
+            while (iteracao < 100000) {
                 trajeto = buscaTabu(trajeto);
-                //console.log(trajeto);
                 iteracao++;
             }
 
-            console.log(trajeto);
+            iteracaoTotal+=iteracao;
+            console.log("Numero de Iterações = " + iteracaoTotal);
+            arrRes = arrRes === null?trajeto: arrRes; 
+            arrRes = trajeto.distancia < arrRes.distancia? trajeto: arrRes;
+            
+            console.log(arrRes);
 
         } else alert("Selecione um documento para ser lido no formato padrão.");
     });

@@ -1,5 +1,29 @@
 let fileList;
 
+// Método para comparar 2 Arrays
+Array.prototype.equals = function (array) {
+    if (!array)
+        return false;
+
+    if (this.length != array.length)
+        return false;
+
+    for (var i = 0, l = this.length; i < l; i++) {
+        if (this[i] instanceof Array && array[i] instanceof Array) {
+            if (!this[i].equals(array[i]))
+                return false;
+        }
+        else if (this[i] != array[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+Object.defineProperty(Array.prototype, "equals", { enumerable: false });
+
+
+
 // Função que cria a tabela dentro da div do html
 const createTable = (array, className) => {
     const divForm = document.querySelector('.divForm');
@@ -81,46 +105,73 @@ const txtToArray = txt => {
 
 const buscaTabu = trajeto => {
 
-    if (trajeto.percurso.length === 0) {
-        for (let i = 1; i < fileList.length; i++) { trajeto.percurso.push(i) };
-        trajeto.percurso.push(0);
+    const percursoI = (trajeto.percurso.length > 0)?[...trajeto.percurso]:[];
+    let distanciaI = 0;
+
+    if (percursoI.length === 0) {
+        for (let i = 1; i < fileList.length; i++) { percursoI.push(i) };
+        percursoI.push(0);
     } else {
         let newTabu = false;
 
         do {
-            let swap1 = Math.round(Math.random() * (trajeto.percurso.length - 2) + 1);
-            let swap2 = Math.round(Math.random() * (trajeto.percurso.length - 2) + 1);
+            let swap1 = Math.round(Math.random() * (trajeto.percurso.length - 3) + 0);
+            let swap2 = Math.round(Math.random() * (trajeto.percurso.length - 3) + 0);
 
             if (swap1 != swap2) {
                 const tabu = [swap1, swap2];
 
-                if (trajeto.listaTabu.length === 0) trajeto.listaTabu.push(tabu);
-                    
+                if (trajeto.listaTabu.length === 0) {
+                    percursoI.splice(swap1, 0, percursoI.splice(swap2, 1)[0]);
+                    trajeto.listaTabu.push(tabu);
+                    break;
+                }
+
                 for (let i = 0; i < trajeto.listaTabu.length; i++) {
-                    if (tabu === trajeto.listaTabu[i]) break;
+                    const tabuA = trajeto.listaTabu[i];
+                    const tabuI = [...tabu];
+
+                    if (tabu.equals(tabuA) || tabuI.reverse().equals(tabuA)) break;
+
 
                     if (trajeto.listaTabu.length - 1 === i) {
-                        trajeto.listaTabu[0] = tabu;
+                        //console.log(tabu);
+                        tabuA.push(tabu);
+                        percursoI.splice(swap1, 0, percursoI.splice(swap2, 1)[0]);
+                        if (tabuA.length > trajeto.percurso.length - 2) tabuA.shift();
                         newTabu = true;
                     }
                 }
-                console.log(tabu);
             }
         } while (newTabu !== true);
 
     }
 
-    const percursoI = [...trajeto.percurso];
-    let distanciaI = 0;
+    console.log(percursoI);
 
-    fileList.forEach(e => {
-        const next = percursoI.shift();
-        distanciaI += parseFloat(e[next]);
-    });
+    let passo = 0;
+    for(let i=0; i< fileList.length; i++) {
+        const next = percursoI[i];
+        distanciaI += parseFloat(fileList[passo][next]);
+        passo = next;
+        console.log(distanciaI);
+        console.log(fileList[passo][next]);
+        console.log('///////////');
+    };
 
-    if (trajeto.distancia === 0) trajeto.distancia = distanciaI;
+    console.log(distanciaI);
+    console.log("********");
 
-    trajeto.distancia = trajeto.distancia > distanciaI ? distanciaI : trajeto.distancia;
+    if (trajeto.distancia === 0) {
+        trajeto.distancia = parseFloat(distanciaI).toFixed(2);
+        trajeto.percurso = percursoI;
+    }
+
+    if (trajeto.distancia > distanciaI) {
+        trajeto.distancia = parseFloat(distanciaI).toFixed(2);
+        console.log(trajeto.distancia);
+        trajeto.percurso = percursoI;
+    }
 
     return trajeto;
 }

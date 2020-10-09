@@ -1,6 +1,14 @@
+let trajetoConstructor = {
+    distancia: -Math.max(),
+    percurso: [],
+    listaTabu: []
+};
+
 let fileList;
 let iteracaoTotal = 0;
-let arrRes = null;
+let arrRes;
+let misses = 0;
+const numIteracao = 10000;
 
 // Método para comparar 2 Arrays
 Array.prototype.equals = function (array) {
@@ -135,17 +143,14 @@ const buscaTabu = trajeto => {
 
                     if (tabu.equals(tabuA) || tabuI.reverse().equals(tabuA)) break;
 
-
                     if (trajeto.listaTabu.length - 1 === i) {
                         //console.log(tabu);
                         tabuA.push(tabu);
                         percursoI.splice(swap1, 0, percursoI.splice(swap2, 1)[0]);
 
                         //Remove elementos da lista tabu
-                        if (tabuA.length > trajeto.percurso.length  * 4 ){
-                            const a = tabuA.shift();
-                            //console.log(a);
-                            }
+                        if (tabuA.length > trajeto.percurso.length  * 4 ) tabuA.shift();
+        
                         newTabu = true;
                     }
                 }
@@ -161,21 +166,14 @@ const buscaTabu = trajeto => {
         const next = percursoI[i];
         distanciaI += parseFloat(fileList[passo][next]);
         passo = next;
-    };
-
-
-
-    if (trajeto.distancia === 0) {
-        trajeto.distancia = parseFloat(distanciaI).toFixed(2);
-        trajeto.percurso = percursoI;
-       // console.log(trajeto);
     }
 
     if (trajeto.distancia > distanciaI) {
         trajeto.distancia = parseFloat(distanciaI).toFixed(2);
         //console.log(trajeto.distancia);
         trajeto.percurso = percursoI;
-    }
+        misses = 0;
+    }else misses++;
 
     return trajeto;
 }
@@ -185,30 +183,30 @@ const buscaTabu = trajeto => {
 const main = (() => {
     const btnLer = document.querySelector('.ler');
 
-
     // Adiciona o Listener na função submit do botão Ler
     btnLer.addEventListener('click', event => {
         event.preventDefault();
 
-        let trajeto = {
-            distancia: -Math.max(),
-            percurso: [],
-            listaTabu: []
-        };
+       let trajeto = {...trajetoConstructor};
+        misses = 0;
 
         // Verifica se há um documento no input
         if (fileList !== undefined && fileList !== null) {
 
-
             let iteracao = 1;
-            while (iteracao < 100000) {
+            while (iteracao < numIteracao) {
                 trajeto = buscaTabu(trajeto);
                 iteracao++;
+
+                if (misses > numIteracao/3){
+                    misses = 0;
+                    arrRes = trajeto.distancia < arrRes.distancia? trajeto: arrRes;
+                    trajeto.percurso = [];        
+                }
             }
 
             iteracaoTotal+=iteracao;
             console.log("Numero de Iterações = " + iteracaoTotal);
-            arrRes = arrRes === null?trajeto: arrRes; 
             arrRes = trajeto.distancia < arrRes.distancia? trajeto: arrRes;
             
             console.log(arrRes);
@@ -219,6 +217,8 @@ const main = (() => {
     // Fica ouvindo se há algum documento carregado
     const inputElement = document.getElementById("input");
     inputElement.addEventListener("change", () => {
+        
+        arrRes = {...trajetoConstructor};
 
         // função que lê arquivo do input
         function printFile(file) {

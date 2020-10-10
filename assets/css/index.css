@@ -2,7 +2,7 @@
 @import url("http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css");
 
 :root {
-    --background-color: rgb(36, 114, 167);
+    --background-color: rgb(20, 92, 30);
     --background-color-button: rgb(7, 58, 92);
 }
 
@@ -20,6 +20,7 @@ header h1 {
     font-weight: 3.5em;
     font-family: 'Ubuntu', sans-serif;
     color: white;
+    text-align: center;
 }
 
 .container {
@@ -66,17 +67,32 @@ header h1 {
 }
 
 .firstData{
-    padding-left: 40px;
+    padding-left: 60px;
 }
 
 .div-form {
     margin: 4px, 4px;
     padding: 4px;
     width: 100%;
-    max-width: max-content;
     height: auto;
+    max-width: max-content;  
     overflow-x: scroll;
     text-align: justify;
+}
+.data-header{
+    background-color: darkcyan;
+    border: 2px solid black;
+    text-align: center;
+}
+
+.data-row{
+    background-color: darkcyan;
+    border: 1px solid black;
+    display: grid;
+    position: absolute;
+    width: 50px;
+    padding-right: 10px;
+    text-align: center;
 }
 
 input,
@@ -107,20 +123,6 @@ input:focus {
     height: 25px;
 }
 
-.data-header{
-    background-color: darkcyan;
-    border: 1px solid black;
-}
-
-.data-row{
-    background-color: darkcyan;
-    border: 1px solid black;
-    position: absolute;
-    width: 35px;
-    padding-right: 10px;
-}
-
-
 button {
     border: none;
     margin-top: 25px;
@@ -139,3 +141,11 @@ button:hover {
 button:active {
     background-color: var(--background-color-button);
 }
+
+p{
+    font-size: 1.3em;
+    font-weight: 1.5em;
+    font-family: 'Ubuntu', sans-serif;
+}
+
+  

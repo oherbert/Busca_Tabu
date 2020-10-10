@@ -32,6 +32,7 @@ const main = (() => {
     const progress = document.getElementById('progress');
     const progressBar = document.getElementById('progressBar');
     const inputElement = document.getElementById("input");
+    const result = document.getElementById('result');
     const btnLer = document.querySelector('.ler');
 
     // Atributos da função main
@@ -61,10 +62,11 @@ const main = (() => {
             table.className = className;
 
             let t = '';
-            t += '<tr class="row"><td class="data-header"></td>';
+            t += '<tr class="row">';
             t += array.map((e, i) => `<td class="data-header"> ${i+1} </td>` );
             t += '</tr>';
-            t += array.map((element, index) => `<tr class="row"><td class="data-header"> ${index+1} </td> ${element.map(e => `<td class="dataTable"> ${e} </td>`)} </tr>`);
+            t += array.map((element, index) => `<tr class="row"><td class="data-row"> ${index+1} </td> 
+            ${element.map((e,i) => i===0?`<td class="firstData"> ${e} </td>`:`<td class="dataTable"> ${e} </td>`)} </tr>`);
             t = t.replaceAll(',', '')
 
             table.innerHTML = t;
@@ -237,12 +239,16 @@ const main = (() => {
                 if (iteracao >= numIteracao) {
                     console.log("Numero de Iterações = " + iteracaoTotal);
                     arrRes = trajeto.distancia < arrRes.distancia ? trajeto : arrRes;
+                    let response = `Distância: ${arrRes.distancia}` 
+                    response += '<br>';
+                    response += `Melhor percurso encontrado: 0${arrRes.percurso.map(e => '->'+ e  )}`;
+                    result.innerHTML = response.replaceAll(',','');
                     console.log(arrRes);
                     onLoad = false;
                     inputElement.disabled = false;
                     clearInterval(loadTabu);
                 }
-            }, 300);
+            }, 330);
 
         } else {
             // Mensagem de erros do botão ler
@@ -262,6 +268,7 @@ const main = (() => {
         progress.className = "";
         progressBar.className = "";
         progressBar.innerHTML = "";
+        result.innerHTML = "";
 
         // função que lê arquivo do input
         function printFile(file) {

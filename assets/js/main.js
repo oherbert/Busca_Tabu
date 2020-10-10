@@ -4,11 +4,20 @@ let trajetoConstructor = {
     listaTabu: []
 };
 
+const progress = document.getElementById('progress');
+const progressBar = document.getElementById('progressBar');
+const inputElement = document.getElementById("input");
+
+let percent;
 let fileList;
 let iteracaoTotal = 0;
 let arrRes;
 let misses = 0;
-const numIteracao = 10000;
+let iteracao;
+const numIteracao = 10000000; //10.000.000
+let interval;
+let onLoad = false;
+let trajeto = { ...trajetoConstructor };
 
 // Método para comparar 2 Arrays
 Array.prototype.equals = function (array) {
@@ -29,22 +38,16 @@ Array.prototype.equals = function (array) {
     }
     return true;
 }
-
 Object.defineProperty(Array.prototype, "equals", { enumerable: false });
-
 
 
 // Função que cria a tabela dentro da div do html
 const createTable = (array, className) => {
     const divForm = document.querySelector('.divForm');
 
-    // console.log(array);
-
     // Limpa O formulário ao carregar o arquivo 
-    if (className === 'table') {
-        while (divForm.children.length > 0) {
-            divForm.removeChild(divForm.lastChild);
-        }
+    while (divForm.children.length > 0) {
+        divForm.removeChild(divForm.lastChild);
     }
 
     if (array !== null) {
@@ -55,7 +58,7 @@ const createTable = (array, className) => {
         let t = '';
         t += array.map(element => `<tr class="row"> ${element.map(e => `<td class="data"> ${e} </td>`)} </tr>`);
         t = t.replaceAll(',', '')
-        //console.log(t);
+
         table.innerHTML = t;
 
         const h2 = document.createElement('h2');
@@ -102,28 +105,27 @@ const txtToArray = txt => {
 
     array.forEach((e, i) => {
         const subArray = [];
-        //console.log(e);
-
         array.map((elm, ii) => subArray.push(i === ii ? 0.0 : Math.sqrt((parseFloat(e) + parseFloat(elm)))));
-
         newArray.push(subArray);
     });
 
-    //newArray.map(e => console.log(e));
     return newArray;
 }
 
-const buscaTabu = trajeto => {
+const buscaTabu = () => {
 
-    const percursoI = (trajeto.percurso.length > 0)?[...trajeto.percurso]:[];
+    // Verifica se há algum percurso senão cria um vazio
+    const percursoI = (trajeto.percurso.length > 0) ? [...trajeto.percurso] : [];
+
     let distanciaI = 0;
 
+    // Se o percurso é vazio cria o primeiro percurso sequencial a partir do marco 0 até o 0 novamente
     if (percursoI.length === 0) {
         for (let i = 1; i < fileList.length; i++) { percursoI.push(i) };
-        percursoI.push(0);
+        percursoI.push(0); // Marco 0 
     } else {
+        // Logica para gerar o swap na lista
         let newTabu = false;
-
         do {
             let swap1 = Math.round(Math.random() * (trajeto.percurso.length - 3) + 0);
             let swap2 = Math.round(Math.random() * (trajeto.percurso.length - 3) + 0);
@@ -131,26 +133,29 @@ const buscaTabu = trajeto => {
             if (swap1 != swap2) {
                 const tabu = [swap1, swap2];
 
+                // Se não a tabu salva a primeira restrição e sai do while
                 if (trajeto.listaTabu.length === 0) {
+                    // Função que altera a posição de 2 elementos em um array
                     percursoI.splice(swap1, 0, percursoI.splice(swap2, 1)[0]);
                     trajeto.listaTabu.push(tabu);
                     break;
                 }
 
+                // Verifica se a combinação gerada já não esta na lista tabu
                 for (let i = 0; i < trajeto.listaTabu.length; i++) {
                     const tabuA = trajeto.listaTabu[i];
                     const tabuI = [...tabu];
 
+                    // Compara se existe o a combinação gerada na lista tabu
                     if (tabu.equals(tabuA) || tabuI.reverse().equals(tabuA)) break;
 
+                    // No final do for ele salva o novo tabu e aplica o Swap
                     if (trajeto.listaTabu.length - 1 === i) {
-                        //console.log(tabu);
                         tabuA.push(tabu);
                         percursoI.splice(swap1, 0, percursoI.splice(swap2, 1)[0]);
 
                         //Remove elementos da lista tabu
-                        if (tabuA.length > trajeto.percurso.length  * 4 ) tabuA.shift();
-        
+                        if (tabuA.length > trajeto.percurso.length * 5) tabuA.shift();
                         newTabu = true;
                     }
                 }
@@ -159,66 +164,100 @@ const buscaTabu = trajeto => {
 
     }
 
-  //  console.log(percursoI);
-
+    // Soma o novo percurso gerado
     let passo = 0;
-    for(let i=0; i< fileList.length; i++) {
+    for (let i = 0; i < fileList.length; i++) {
         const next = percursoI[i];
         distanciaI += parseFloat(fileList[passo][next]);
         passo = next;
     }
 
+    // Verifica se no novo percurso é menor que o salvo
     if (trajeto.distancia > distanciaI) {
         trajeto.distancia = parseFloat(distanciaI).toFixed(2);
-        //console.log(trajeto.distancia);
         trajeto.percurso = percursoI;
         misses = 0;
-    }else misses++;
+    } else misses++; // Soma sequencia de Pioras para forcar sair de regiões ótimas
 
-    return trajeto;
 }
 
 
-// Função principal que executa a logica do simplex 
+// Função principal que executa a logica da busca tabu
 const main = (() => {
     const btnLer = document.querySelector('.ler');
 
-    // Adiciona o Listener na função submit do botão Ler
+    // Adiciona o Listener no botão Ler
     btnLer.addEventListener('click', event => {
         event.preventDefault();
 
-       let trajeto = {...trajetoConstructor};
-        misses = 0;
-
         // Verifica se há um documento no input
-        if (fileList !== undefined && fileList !== null) {
+        if (fileList !== undefined && fileList !== null && onLoad === false) {
 
-            let iteracao = 1;
-            while (iteracao < numIteracao) {
-                trajeto = buscaTabu(trajeto);
-                iteracao++;
+            // cria um novo trajeto
+            trajeto = { ...trajetoConstructor };
+            misses = 0;
+            percent = 0.01;
+            iteracao = 1;
+            iteracaoTotal = 0;
 
-                if (misses > numIteracao/3){
-                    misses = 0;
-                    arrRes = trajeto.distancia < arrRes.distancia? trajeto: arrRes;
-                    trajeto.percurso = [];        
+            progress.className = "progress";
+            progressBar.className = "progress-bar progress-bar-striped progress-bar-info";
+
+            progressBar.style = `width: ${Math.floor(percent * 100)}%`;
+            progressBar.innerHTML = `${Math.floor(percent * 100)}%`;
+
+            inputElement.disabled = true;
+
+            const loadTabu = setInterval(function executeTabuSearch() {
+                onLoad = true;
+                iteracaoTotal += parseInt(numIteracao / 100);
+
+                while (iteracao < iteracaoTotal) {
+                    buscaTabu();
+                    iteracao++;
+
+                    if (iteracao === parseInt(numIteracao * percent)) {
+                        progressBar.style = `width: ${parseInt(percent * 100)}%`;
+                        progressBar.innerHTML = `${Math.floor(percent * 100)}%`;
+                        parseFloat(percent += 0.01).toFixed(2);
+                    }
+
+                    // Força sair de uma região ótima pelo numero de repetições de pioras
+                    if (misses > trajeto.percurso.length * 20) {
+                        misses = 0;
+                        arrRes = trajeto.distancia < arrRes.distancia ? {...trajeto} : arrRes;
+                        // Limpa o percurso mas mantendo a lista tabu
+                        trajeto.distancia = Infinity;
+                        trajeto.percurso = [];
+                    }
                 }
-            }
 
-            iteracaoTotal+=iteracao;
-            console.log("Numero de Iterações = " + iteracaoTotal);
-            arrRes = trajeto.distancia < arrRes.distancia? trajeto: arrRes;
-            
-            console.log(arrRes);
+                if (iteracao >= numIteracao) {
+                    console.log("Numero de Iterações = " + iteracaoTotal);
+                    arrRes = trajeto.distancia < arrRes.distancia ? trajeto : arrRes;
+                    console.log(arrRes);
+                    onLoad = false;
+                    inputElement.disabled = false;
+                    clearInterval(loadTabu);
+                }
 
-        } else alert("Selecione um documento para ser lido no formato padrão.");
+            }, 300);
+
+        } else {
+            if (onLoad === true) alert("Busca tabu em andamento, aguarde o carregamento!"); 
+            else alert("Selecione um documento para ser lido no formato padrão!");
+        }
     });
 
+
     // Fica ouvindo se há algum documento carregado
-    const inputElement = document.getElementById("input");
     inputElement.addEventListener("change", () => {
-        
-        arrRes = {...trajetoConstructor};
+
+        arrRes = { ...trajetoConstructor };
+
+        progress.className = "";
+        progressBar.className = "";
+        progressBar.innerHTML = "";
 
         // função que lê arquivo do input
         function printFile(file) {
@@ -227,7 +266,7 @@ const main = (() => {
                 fileList = txtToArray(reader.result);
                 const stringArrayToNumberArray =
                     (fileList !== null) ? fileList.map(val => val.map(element => (parseFloat(element).toFixed(1)))) : null;
-                createTable(stringArrayToNumberArray, 'table');
+                createTable(stringArrayToNumberArray, 'table-form');
             };
             reader.readAsText(file);
         }
@@ -236,7 +275,5 @@ const main = (() => {
         if (inputElement.files[0] != null) {
             printFile(inputElement.files[0]);
         }
-
     });
-
 })();

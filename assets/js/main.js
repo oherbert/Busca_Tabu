@@ -37,6 +37,7 @@ const main = (() => {
 
     // Atributos da função main
     let percent;
+    let title;
     let fileList;
     let iteracaoTotal = 0;
     let arrRes;
@@ -88,7 +89,7 @@ const main = (() => {
         let index = 1;
 
         for (let linha of linhas) {
-            // if (linha.indexOf("COMMENT") >= 0) array.push(linha.substr(linha.indexOf(':') + 2));
+             if (linha.indexOf("COMMENT") >= 0) title = (linha.substr(linha.indexOf(':') + 2));
 
             try {
                 if (linha.indexOf(index) === 0) {
@@ -239,7 +240,9 @@ const main = (() => {
                 if (iteracao >= numIteracao) {
                     console.log("Numero de Iterações = " + iteracaoTotal);
                     arrRes = trajeto.distancia < arrRes.distancia ? trajeto : arrRes;
-                    let response = `Distância: ${arrRes.distancia}` 
+                    let response = title;
+                    response += '<br>';  
+                    response += `Distância: ${arrRes.distancia}` 
                     response += '<br>';
                     response += `Melhor percurso encontrado: 0${arrRes.percurso.map(e => '->'+ e  )}`;
                     result.innerHTML = response.replaceAll(',','');
@@ -248,7 +251,7 @@ const main = (() => {
                     inputElement.disabled = false;
                     clearInterval(loadTabu);
                 }
-            }, 330);
+            }, 350);
 
         } else {
             // Mensagem de erros do botão ler

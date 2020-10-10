@@ -60,9 +60,13 @@ header h1 {
     max-width: fit-content;
 }
 
-.dataTable {
+.dataTable, .firstData {
     max-width: fit-content;
     border: 1px solid black;
+}
+
+.firstData{
+    padding-left: 40px;
 }
 
 .div-form {
@@ -102,6 +106,20 @@ input:focus {
 #progress, #progressBar{
     height: 25px;
 }
+
+.data-header{
+    background-color: darkcyan;
+    border: 1px solid black;
+}
+
+.data-row{
+    background-color: darkcyan;
+    border: 1px solid black;
+    position: absolute;
+    width: 35px;
+    padding-right: 10px;
+}
+
 
 button {
     border: none;

@@ -61,7 +61,10 @@ const main = (() => {
             table.className = className;
 
             let t = '';
-            t += array.map(element => `<tr class="row"> ${element.map(e => `<td class="dataTable"> ${e} </td>`)} </tr>`);
+            t += '<tr class="row"><td class="data-header"></td>';
+            t += array.map((e, i) => `<td class="data-header"> ${i+1} </td>` );
+            t += '</tr>';
+            t += array.map((element, index) => `<tr class="row"><td class="data-header"> ${index+1} </td> ${element.map(e => `<td class="dataTable"> ${e} </td>`)} </tr>`);
             t = t.replaceAll(',', '')
 
             table.innerHTML = t;

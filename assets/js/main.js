@@ -1,4 +1,5 @@
 const main = (() => {
+
      // Criação de um método para comparar 2 Arrays
      Array.prototype.equals = function (array) {
         if (!array)
@@ -43,10 +44,11 @@ const main = (() => {
     let arrRes;
     let misses = 0;
     let iteracao;
-    const numIteracao = 10000000; //10.000.000
+    const numIteracao = 1000000; //10.000.000
     let interval;
     let onLoad = false;
     let trajeto = { ...trajetoConstructor };
+    let count = 0;
 
     // Função que cria a tabela dentro da div do html
     const createTable = (array, className) => {
@@ -106,20 +108,18 @@ const main = (() => {
                 return null;
             }
         }
-        for (let element of array) {
-            let a = element.shift();
-            let b = element.shift();
-            element.push((a - b) ** 2);
-        }
-
+        
         const newArray = [];
 
-        array.forEach((e, i) => {
-            const subArray = [];
-            array.map((elm, ii) => subArray.push(i === ii ? 0.0 : Math.sqrt((parseFloat(e) + parseFloat(elm)))));
-            newArray.push(subArray);
-        });
+        for (let element in array) {
 
+            const tempArray = [];
+            const x1 = array[element][0];
+            const y1 = array[element][1];
+
+            array.map(e=> tempArray.push(parseFloat(Math.sqrt((x1 - e[0])**2 + (y1 - e[1])**2)).toFixed(1)));
+            newArray.push(tempArray);
+        }
         return newArray;
     }
 
@@ -138,8 +138,8 @@ const main = (() => {
             // Logica para gerar o swap na lista
             let newTabu = false;
             do {
-                let swap1 = Math.round(Math.random() * (trajeto.percurso.length - 3) + 0);
-                let swap2 = Math.round(Math.random() * (trajeto.percurso.length - 3) + 0);
+                let swap1 = Math.round(Math.random() * (trajeto.percurso.length - 2) + 0);
+                let swap2 = Math.round(Math.random() * (trajeto.percurso.length - 2) + 0);
 
                 if (swap1 != swap2) {
                     const tabu = [swap1, swap2];
@@ -228,9 +228,11 @@ const main = (() => {
                     }
 
                     // Força sair de uma região ótima pelo numero de repetições de pioras
-                    if (misses > trajeto.percurso.length * 20) {
+                    if (misses > trajeto.percurso.length ** 2 ) {
+                        console.log(arrRes.distancia + " atual, e o novo é: "+ trajeto.distancia+" count: " +count + " misses: " + misses);
                         misses = 0;
                         arrRes = trajeto.distancia < arrRes.distancia ? { ...trajeto } : arrRes;
+                        count++;
                         // Limpa o percurso mas mantendo a lista tabu
                         trajeto.distancia = Infinity;
                         trajeto.percurso = [];
@@ -244,14 +246,14 @@ const main = (() => {
                     response += '<br>';  
                     response += `Distância: ${arrRes.distancia}` 
                     response += '<br>';
-                    response += `Melhor percurso encontrado: 0${arrRes.percurso.map(e => '->'+ e  )}`;
+                    response += `Melhor percurso encontrado: 1${arrRes.percurso.map(e => '->'+ parseInt(e+1)  )}`;
                     result.innerHTML = response.replaceAll(',','');
                     console.log(arrRes);
                     onLoad = false;
                     inputElement.disabled = false;
                     clearInterval(loadTabu);
                 }
-            }, 350);
+            }, 1);
 
         } else {
             // Mensagem de erros do botão ler

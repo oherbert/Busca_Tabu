@@ -1,7 +1,7 @@
 const main = (() => {
 
-     // Criação de um método para comparar 2 Arrays
-     Array.prototype.equals = function (array) {
+    // Criação de um método para comparar 2 Arrays
+    Array.prototype.equals = function (array) {
         if (!array)
             return false;
 
@@ -20,7 +20,7 @@ const main = (() => {
         return true;
     }
     Object.defineProperty(Array.prototype, "equals", { enumerable: false });
-
+    ////////////////////////////////////////////////////////////////////////////
 
     // Objeto trajeto 
     let trajetoConstructor = {
@@ -66,10 +66,10 @@ const main = (() => {
 
             let t = '';
             t += '<tr class="row">';
-            t += array.map((e, i) => `<td class="data-header"> ${i+1} </td>` );
+            t += array.map((e, i) => `<td class="data-header"> ${i + 1} </td>`);
             t += '</tr>';
-            t += array.map((element, index) => `<tr class="row"><td class="data-row"> ${index+1} </td> 
-            ${element.map((e,i) => i===0?`<td class="firstData"> ${e} </td>`:`<td class="dataTable"> ${e} </td>`)} </tr>`);
+            t += array.map((element, index) => `<tr class="row"><td class="data-row"> ${index + 1} </td> 
+            ${element.map((e, i) => i === 0 ? `<td class="firstData"> ${e} </td>` : `<td class="dataTable"> ${e} </td>`)} </tr>`);
             t = t.replaceAll(',', '')
 
             table.innerHTML = t;
@@ -91,7 +91,7 @@ const main = (() => {
         let index = 1;
 
         for (let linha of linhas) {
-             if (linha.indexOf("COMMENT") >= 0) title = (linha.substr(linha.indexOf(':') + 2));
+            if (linha.indexOf("COMMENT") >= 0) title = (linha.substr(linha.indexOf(':') + 2));
 
             try {
                 if (linha.indexOf(index) === 0) {
@@ -99,7 +99,7 @@ const main = (() => {
                     array.push(line.split(' '));
 
                     array[index - 1].map((e, i) => array[index - 1][i] = (parseFloat(e)));
-                    // console.log(array[index -1]);
+                    array[index - 1].map((e, i) =>{ if( isNaN(array[index - 1][i])) throw "Erro"});
                     index++;
                 }
             }
@@ -108,7 +108,11 @@ const main = (() => {
                 return null;
             }
         }
-        
+        return array;
+    }
+
+    // Função que cria as distâncias dos pontos
+    const createPoints = array => {
         const newArray = [];
 
         for (let element in array) {
@@ -117,7 +121,7 @@ const main = (() => {
             const x1 = array[element][0];
             const y1 = array[element][1];
 
-            array.map(e=> tempArray.push(parseFloat(Math.sqrt((x1 - e[0])**2 + (y1 - e[1])**2)).toFixed(1)));
+            array.map(e => tempArray.push(parseFloat(Math.sqrt((x1 - e[0]) ** 2 + (y1 - e[1]) ** 2)).toFixed(1)));
             newArray.push(tempArray);
         }
         return newArray;
@@ -172,7 +176,6 @@ const main = (() => {
                     }
                 }
             } while (newTabu !== true);
-
         }
         // Soma o novo percurso gerado
         let passo = 0;
@@ -187,7 +190,6 @@ const main = (() => {
             trajeto.percurso = percursoI;
             misses = 0;
         } else misses++; // Soma sequencia de Pioras para forcar sair de regiões ótimas
-
     }
 
     // Adiciona o Listener no botão Ler
@@ -228,26 +230,39 @@ const main = (() => {
                     }
 
                     // Força sair de uma região ótima pelo numero de repetições de pioras
-                    if (misses > trajeto.percurso.length ** 2 ) {
-                        console.log(arrRes.distancia + " atual, e o novo é: "+ trajeto.distancia+" count: " +count + " misses: " + misses);
-                        misses = 0;
-                        arrRes = trajeto.distancia < arrRes.distancia ? { ...trajeto } : arrRes;
+                    if (misses > trajeto.percurso.length ** 2) {
+
+                        console.log(arrRes.distancia + " atual, e o novo é: " + trajeto.distancia + " count: " + count + " misses: " + misses);
+
+                        if( arrRes.distancia === Infinity) arrRes = { ...trajeto }; 
+                        else if( parseFloat(trajeto.distancia) < parseFloat(arrRes.distancia)) {
+                            arrRes =  { ...trajeto };
+                            console.log("trocada");
+                        }
+
                         count++;
                         // Limpa o percurso mas mantendo a lista tabu
                         trajeto.distancia = Infinity;
                         trajeto.percurso = [];
+                        misses = 0;
                     }
                 }
 
                 if (iteracao >= numIteracao) {
                     console.log("Numero de Iterações = " + iteracaoTotal);
-                    arrRes = trajeto.distancia < arrRes.distancia ? trajeto : arrRes;
+                    
+                    if( arrRes.distancia === Infinity) arrRes = { ...trajeto }; 
+                        else if( parseFloat(trajeto.distancia) < parseFloat(arrRes.distancia)) {
+                            arrRes =  { ...trajeto };
+                            console.log("trocada");
+                        }
+
                     let response = title;
-                    response += '<br>';  
-                    response += `Distância: ${arrRes.distancia}` 
                     response += '<br>';
-                    response += `Melhor percurso encontrado: 1${arrRes.percurso.map(e => '->'+ parseInt(e+1)  )}`;
-                    result.innerHTML = response.replaceAll(',','');
+                    response += `Distância: ${arrRes.distancia}`
+                    response += '<br>';
+                    response += `Melhor percurso encontrado: 1${arrRes.percurso.map(e => '->' + parseInt(e + 1))}`;
+                    result.innerHTML = response.replaceAll(',', '');
                     console.log(arrRes);
                     onLoad = false;
                     inputElement.disabled = false;
@@ -261,7 +276,6 @@ const main = (() => {
             else alert("Selecione um documento para ser lido no formato padrão!");
         }
     });
-
 
     // Fica ouvindo se há algum documento carregado
     inputElement.addEventListener("change", () => {
@@ -279,7 +293,9 @@ const main = (() => {
         function printFile(file) {
             let reader = new FileReader();
             reader.onload = function () {
-                fileList = txtToArray(reader.result);
+
+                fileList = createPoints(txtToArray(reader.result));
+
                 const stringArrayToNumberArray =
                     (fileList !== null) ? fileList.map(val => val.map(element => (parseFloat(element).toFixed(1)))) : null;
                 createTable(stringArrayToNumberArray, 'table-form');
